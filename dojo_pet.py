@@ -1,6 +1,6 @@
 import pygame
-
 from pet import Pet
+import math
 
 
 class PetModel():
@@ -9,14 +9,30 @@ class PetModel():
     def __init__(self):
         self.model = [
             # Array of pairs of points representing our pet
-            ((100, 100), (200, 400)),
-            ((100, 100), (50, 50)),
-            ((100, 100), (50, 150))
+            ((200, 700), (500, 700)),
+            ((500, 700), (600, 500)),
+            ((600, 500), (700, 640)),
+            ((600, 500), (650, 680)),
         ]
+
+    def update(self, seconds):
+        # Mouth length: 120
+        # Initial angle: 30 & 45 degrees down
+        # Top jaw stationary
+        # "head" is the point where the jaw lines meet
+        # 2 seconds?
+        seconds %= 2000
+        if seconds < 1000:
+            t = seconds
+        else:
+            t = seconds - 1000
+        dx = 120 * math.sin(seconds * 2 * math.pi / 1000)
+        dy = 120 * math.cos(seconds * 2 * math.pi / 1000)
+        self.model[-1] = ((600, 500), (600 + dx, 500 + dy))
 
     def draw(self, surface):
         for p1, p2 in self.model:
-            pygame.draw.line(surface, "green", p1, p2)
+            pygame.draw.line(surface, "green", p1, p2, width=4)
 
 
 class TextModel:
@@ -40,7 +56,10 @@ class DojoPet():
         pygame.display.set_caption('Dojo Pet')
         self.screen = pygame.display.set_mode((1200, 960))
 
+        self.fps = 60
         self.clock = pygame.time.Clock()
+        self.start = self.clock.get_time()
+
         self.reset()
 
 
@@ -71,7 +90,10 @@ class DojoPet():
                     self.pet.shovel()
                 if (event.type == pygame.KEYDOWN) and (event.key == ord("t")):
                     self.pet.tick()
+            time = self.clock.get_time() - self.start
+            self.model.update(time)
             self.draw()
+            self.clock.tick(self.fps)
             if i % 250 == 0:
                 self.pet.tick()
             i += 1
